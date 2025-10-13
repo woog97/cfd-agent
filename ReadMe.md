@@ -1,6 +1,6 @@
 # ChatCFD: An End-to-End CFD Agent with Domain-Specific Structured Thinking
 
-ChatCFD is a LLM-driven pipeline that automates computational fluid dynamics (CFD) workflows within the OpenFOAM framework, enabling users to configure and execute complex simulations from natural language prompts or published literature with minimal prior expertise. Further details can be found in our [arXiv](https://arxiv.org/abs/2506.02019) preprint, with a full Appendix available on [ResearchGate](https://www.researchgate.net/profile/Tianhan-Zhang-2/publication/392371234_ChatCFD_an_End-to-End_CFD_Agent_with_Domain-specific_Structured_Thinking/links/683fce526b5a287c30491773/ChatCFD-an-End-to-End-CFD-Agent-with-Domain-specific-Structured-Thinking.pdf). Through a conversational chat interface, users can:
+ChatCFD is a LLM-driven pipeline that automates computational fluid dynamics (CFD) workflows within the OpenFOAM framework, enabling users to configure and execute complex simulations from natural language prompts or published literature with minimal prior expertise. Further details can be found in our [arXiv](https://arxiv.org/abs/2506.02019v2) preprint, with a full Appendix available on [ResearchGate](https://www.researchgate.net/profile/Tianhan-Zhang-2/publication/392371234_ChatCFD_an_End-to-End_CFD_Agent_with_Domain-specific_Structured_Thinking/links/683fce526b5a287c30491773/ChatCFD-an-End-to-End-CFD-Agent-with-Domain-specific-Structured-Thinking.pdf). Through a conversational chat interface, users can:
 - Upload and specify which CFD case from a paper they want to simulate
 - Provide the corresponding mesh files for the simulation
 
@@ -146,11 +146,13 @@ ChatCFD has demonstrated:
 ## Citation
 
 ```
-@misc{fan2025chatcfd,
-      title={ChatCFD: an End-to-End CFD Agent with Domain-specific Structured Thinking}, 
-      author={E Fan and Weizong Wang and Tianhan Zhang},
+@misc{fan2025chatcfdllmdrivenagentendtoend,
+      title={ChatCFD: An LLM-Driven Agent for End-to-End CFD Automation with Domain-Specific Structured Reasoning}, 
+      author={E Fan and Kang Hu and Zhuowen Wu and Jiangyang Ge and Jiawei Miao and Yuzhi Zhang and He Sun and Weizong Wang and Tianhan Zhang},
       year={2025},
       eprint={2506.02019},
       archivePrefix={arXiv},
-      primaryClass={cs.CL}
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2506.02019}, 
 }
+```

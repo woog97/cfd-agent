@@ -632,7 +632,7 @@ if __name__ == "__main__":
         main()  # streamlit run src/chatbot.py --server.port 8502
 
     elif config.mode == 1:  # 1: No frontend, run directly
-        # python foambench_main.py --openfoam_path $WM_PROJECT_DIR --output ./output --prompt_path "./user_requirement.txt"
+        # python chatbot.py --case_description_path <path> --grid_path <path> --run_time <int>
 
         parser = argparse.ArgumentParser(description="ChatCFD: AI-Driven CFD Simulation Setup and Execution")
 
