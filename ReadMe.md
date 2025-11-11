@@ -200,7 +200,7 @@ If you installed OpenFOAM according to Step 4, `OpenFOAM_path` and `OpenFOAM_tut
     "OpenFOAM_tutorial_path":"/usr/lib/openfoam/openfoam2406/tutorials",
     "max_running_test_round":30,
     "pdf_chunk_d" : 1.5,
-    "sentence_transformer_path": ""   // Leave empty to use the default download path
+    "sentence_transformer_path": ""
 }
 ```
 
