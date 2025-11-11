@@ -76,7 +76,7 @@ This enables users who lack extensive CFD domain expertise to perform CFD simula
 |---------|---------|---------|
 | Operating System | Linux / Windows (WSL2) | Linux is recommended to ensure OpenFOAM compatibility. |
 | CFD Simulation Software | **OpenFOAM v2406** | ⚠️ Recommended version is v2406. Using other versions will lead to a mismatch with pre-built knowledge base files (e.g., `database_OFv24/*.json`), severely impacting ChatCFD's performance and accuracy. |
-| Python | Python 3.11.4 | ⚠️: Please avoid Python 3.12, as this version may have unknown conflicts with the PyFoam library. |
+| Python | Python 3.11.4 | ⚠️ Please avoid Python 3.12, as this version may have unknown conflicts with the PyFoam library. |
 | Hardware | CUDA-enabled GPU | Optional, but recommended to accelerate the running of some components. |
 
 ### Python Dependencies Overview
