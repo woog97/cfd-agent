@@ -42,20 +42,18 @@ def robust_llm_parse(qa, prompt, parser, max_retries=3):
                 print("Maximum retry attempts reached, using fallback result")
                 return None
 
-
+# The following content will be removed from this point onwards.
 def select_random_items(a, number):
     # Filter out key-value pairs where value string length exceeds 10000
     filtered_a = {k: v for k, v in a.items() if len(str(v)) <= 10000}
     
     # Check if processed dictionary has more than 5 keys
     if len(filtered_a) > number:
-        # Randomly select 5 keys
         selected_keys = random.sample(list(filtered_a.keys()), number)
         # Build new dictionary
         return {key: filtered_a[key] for key in selected_keys}
     else:
         return filtered_a
-        
     
 def dict_to_json_string(data):
     json_str = json.dumps(data, ensure_ascii=False, indent=2)
@@ -101,7 +99,6 @@ def create_OF_case_json(source_dir):
 
     return dict_to_json_string(file_data)
 
-
 def list_case_file(case_path):
     target_folders = ['0', 'system', 'constant']
     file_list = []
@@ -112,7 +109,7 @@ def list_case_file(case_path):
         for entry in os.listdir(folder_path):
             entry_path = os.path.join(folder_path, entry)
             if os.path.isfile(entry_path):
-                # Build relative path and unify to Linux-style path separators
+
                 rel_path = f"{folder}/{entry}"
                 file_list.append(rel_path)
     return file_list
@@ -154,95 +151,6 @@ no'''
 
     return pure_response
 
-def read_files_to_dict(base_dir):
-    file_dict = {}
-    # List of directories to traverse
-    target_dirs = ['0', 'system', 'constant']
-    
-    for dir_name in target_dirs:
-        dir_path = os.path.join(base_dir, dir_name)
-        # Skip if directory doesn't exist
-        if not os.path.isdir(dir_path):
-            continue
-        # Traverse all entries under directory
-        for entry in os.listdir(dir_path):
-            full_path = os.path.join(dir_path, entry)
-            # Only process files, ignore subdirectories
-            if os.path.isfile(full_path):
-                # Build relative path as key (relative to base_dir)
-                rel_path = os.path.join(dir_name, entry)
-                # Read file content
-                try:
-                    with open(full_path, 'r', encoding='utf-8') as f:
-                        file_dict[rel_path] = f.read()
-                except Exception as e:
-                    file_dict[rel_path] = f"<Error reading file: {str(e)}>"
-    
-    return file_dict
-
-def add_new_file(file_name):
-
-    print(f"adding new file: {file_name}")
-
-    file_path = f'{config.OUTPUT_PATH}/{file_name}'
-
-    other_case_file_content = read_files_to_dict(config.OUTPUT_PATH)
-
-    add_new_file_prompt = f'''
-    A new case file {file_name} must be add to the OpenFOAM case dir. The file contents of other case files are: {other_case_file_content}. Please respond the file contents for the new file which can make this case run correctly with other case files. Ensure the dimension is correct if the dimension shows in the file content.
-
-    In your response: Absolutely AVOID any elements including but not limited to:
-    - Markdown code block markers (``` or  ```)
-    - Extra comments or explanations
-    - Unnecessary empty lines or indentation
-    '''
-
-    qa = QA_NoContext_deepseek_R1()
-
-    answer = qa.ask(add_new_file_prompt)
-
-    # Perform dimension correction
-    file_content = answer
-    with open(os.path.join(config.path_cfg.database_dir, 'OF_case_dimensions.json'), 'r', encoding='utf-8') as f:
-        dimensions_dict = json.load(f)
-    if file_name in dimensions_dict.keys():
-        if "dimensions" in file_content:
-            dimension_pattern = r'dimensions.*?\n'
-            match = re.search(dimension_pattern, file_content)
-            if match:
-                if file_name+"_" in dimensions_dict.keys(): # The underlined parts cannot be compressed.
-                    if file_name in ["0/p", "0/p_rgh", "0/alphat"]: 
-                        if config.case_info.case_solver in config.compressible_solvers or "compressible" in file_content:
-                            file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name]};\n', file_content)
-                        elif config.case_info.case_solver in config.incompressible_solvers:
-                            file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name+"_"]};\n', file_content)
-                        else:
-                            pass
-                    else:
-                        pass # Skip decision, let LLM set according to initially generated content
-                else:
-                    file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name]};\n', file_content)
-        else:
-            if file_name+"_" in dimensions_dict.keys(): 
-                if file_name in ["0/p", "0/p_rgh", "0/alphat"]: 
-                    if config.case_info.case_solver in config.compressible_solvers or "compressible" in file_content:
-                        file_content = f"\ndimensions      {dimensions_dict[file_name]};\n"
-                    elif config.case_info.case_solver in config.incompressible_solvers:
-                        file_content = f"\ndimensions      {dimensions_dict[file_name+'_']};\n"
-                else:
-                    pass    # File will error, let LLM solve it itself
-            else:
-                file_content += f"\ndimensions      {dimensions_dict[file_name]};\n"
-
-    try:
-        file_writer.write_field_to_file(file_content,file_path)
-        print(f"write the file {file_name}")
-    except Exception as e:
-        print(f"Errors occur during write_field_to_file: {e}")
-    else: # Successfully executed field file write operation
-        file_write_successful = True
-    return answer
-
 def identify_file_name_from_error(running_error):
 
     case_files = list_case_file(config.OUTPUT_PATH)
@@ -266,9 +174,11 @@ def identify_file_name_from_error(running_error):
 
     return answer
 
-# Parameter target_file is the file name identified from running_error that needs to be modified
-# Find by solver
 def find_reference_files_by_solver(target_file):
+    """Find target_file files from other cases for reference
+    Args:
+        target_file (str): Name of the file to search for
+    """
     case_solver = config.case_solver
     turbulence_model = config.case_turbulence_model
     turbulence_model_list = [
@@ -395,36 +305,6 @@ def analyze_running_error_with_all_case_file_content(running_error):
 
     return [wrong_file,advices_for_revision]
 
-def analyze_running_error_2(running_error, file_name):
-
-    file_content = None
-
-    file_path = f'{config.OUTPUT_PATH}/{file_name}'
-
-    with open(file_path, "r", encoding="utf-8") as file:
-        file_content = file.read()
-
-    case_files = list_case_file(config.OUTPUT_PATH)
-
-    analyze_running_error_prompt = f'''
-    Analyze the provided OpenFOAM runtime error {running_error} to identify the root cause. Give advice on correcting the file {file_name} with the file contents as {file_content}.
-
-    In your response: Provide a step-by-step fix (e.g., adjust endTime, modify tolerance in solver settings, correct boundary type in U). Ensure the advice addresses the error’s technical cause (e.g., CFL violation, invalid discretization scheme, missing required keyword). The advice must be a string.
-
-    In your response: Absolutely AVOID any elements including but not limited to:
-    - Markdown code block markers (``` or ```)
-    - Extra comments or explanations
-    - Unnecessary empty lines or indentation
-    '''
-    
-    qa = QA_NoContext_deepseek_R1()
-
-    answer = qa.ask(analyze_running_error_prompt)
-
-    advices_for_revision = answer
-
-    return advices_for_revision
-
 def analyze_error_repetition(error_history):
     answer = 'no'
     if(len(error_history)>=3):
@@ -446,40 +326,6 @@ def analyze_error_repetition(error_history):
         return True
     else:
         return False
-
-def rewrite_file(file_name, reference_files):
-    print(f"rewriting {file_name}")
-
-    file_content = None
-
-    file_path = f'{config.OUTPUT_PATH}/{file_name}'
-
-    with open(file_path, "r", encoding="utf-8") as file:
-        file_content = file.read()
-
-    correct_file_prompt = f'''{config.general_prompts}
-    Please rewrite the {file_name} file for the OpenFOAM case. The original file content is: {file_content}. You can reference these files from OpenFOAM tutorial {reference_files} for formating and key values. Ensure the dimension is correct if the dimension shows in the file content.
-
-    In your response: Absolutely AVOID any elements including but not limited to:
-    - Markdown code block markers (``` or  ```)
-    - Extra comments or explanations
-    '''
-
-    qa = QA_NoContext_deepseek_V3()
-
-    answer = qa.ask(correct_file_prompt)
-
-    answer = file_writer.extract_pure_response(answer)
-
-    try:
-        file_writer.write_field_to_file(answer,file_path)
-        print(f"write the file {file_name}")
-
-    except Exception as e:
-        print(f"Errors occur during write_field_to_file: {e}")
-    else: # Successfully executed field file write operation
-        file_write_successful = True
-
 
 def analyze_running_error_with_reference_files(running_error, file_name,early_revision_advice, reference_files):
 
@@ -543,50 +389,129 @@ In your final response after "Here is my response:", absolutely AVOID any elemen
         print(f"Errors occur during write_field_to_file: {e}")
     else: # Successfully executed the field file write operation
         file_write_successful = True
+# The preceding section of text will be removed from this point onwards.
 
-def ensure_all_field_file_dimensions():
 
-    print(f"Ensuring all field file dimensions")
+def rewrite_file(file_name, reference_files):
+    print(f"rewriting {file_name}")
 
-    case_0_folder = f'{config.OUTPUT_PATH}/0'
+    file_content = None
 
-    folder_path = Path(case_0_folder)
+    file_path = f'{config.OUTPUT_PATH}/{file_name}'
 
-    for file_path in folder_path.iterdir():
-        file_content = None
-        if file_path.is_file():
-            field_file = f'{case_0_folder}/{file_path.name}'
+    with open(file_path, "r", encoding="utf-8") as file:
+        file_content = file.read()
 
-        with open(file_path, "r", encoding="utf-8") as file:
-            file_content = file.read()
-            a = 1
+    correct_file_prompt = f'''{config.general_prompts}
+    Please rewrite the {file_name} file for the OpenFOAM case. The original file content is: {file_content}. You can reference these files from OpenFOAM tutorial {reference_files} for formating and key values. Ensure the dimension is correct if the dimension shows in the file content.
 
-        # reference_files = find_reference_files_by_solver(field_file)
+    In your response: Absolutely AVOID any elements including but not limited to:
+    - Markdown code block markers (``` or  ```)
+    - Extra comments or explanations
+    '''
 
-        correct_dimension_prompt =   f'''{config.general_prompts}
-        Please check the dimension of the OpenFOAM field file {file_path.name} and correct it if the dimension is incorrect. The file content is: {file_content}.
+    qa = QA_NoContext_deepseek_V3()
 
-        In your response: Absolutely AVOID any elements including but not limited to:
-        - Markdown code block markers (``` or  ```)
-        - Extra comments or explanations
-        - Unnecessary empty lines or indentation
-        '''
+    answer = qa.ask(correct_file_prompt)
 
-        qa = QA_NoContext_deepseek_V3()
+    answer = file_writer.extract_pure_response(answer)
 
-        answer = qa.ask(correct_dimension_prompt)
+    try:
+        file_writer.write_field_to_file(answer,file_path)
+        print(f"write the file {file_name}")
 
-        answer = file_writer.extract_pure_response(answer)
+    except Exception as e:
+        print(f"Errors occur during write_field_to_file: {e}")
+    else: # Successfully executed field file write operation
+        file_write_successful = True
 
-        try:
-            file_writer.write_field_to_file(answer,file_path)
-            print(f"write the file 0/{file_path.name}")
 
-        except Exception as e:
-            print(f"Errors occur during write_field_to_file: {e}")
-        else: # Successfully executed field file write operation
-            file_write_successful = True
+def read_files_to_dict(base_dir):
+    file_dict = {}
+    # List of directories to traverse
+    target_dirs = ['0', 'system', 'constant']
+    
+    for dir_name in target_dirs:
+        dir_path = os.path.join(base_dir, dir_name)
+        if not os.path.isdir(dir_path):
+            continue
+        # Traverse all entries under directory
+        for entry in os.listdir(dir_path):
+            full_path = os.path.join(dir_path, entry)
+            # Only process files, ignore subdirectories
+            if os.path.isfile(full_path):
+                rel_path = os.path.join(dir_name, entry)
+                # Read file content
+                try:
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        file_dict[rel_path] = f.read()
+                except Exception as e:
+                    file_dict[rel_path] = f"<Error reading file: {str(e)}>"
+    
+    return file_dict
 
+def add_new_file(file_name):
+
+    print(f"adding new file: {file_name}")
+
+    file_path = f'{config.OUTPUT_PATH}/{file_name}'
+
+    other_case_file_content = read_files_to_dict(config.OUTPUT_PATH)
+
+    add_new_file_prompt = f'''
+    A new case file {file_name} must be add to the OpenFOAM case dir. The file contents of other case files are: {other_case_file_content}. Please respond the file contents for the new file which can make this case run correctly with other case files. Ensure the dimension is correct if the dimension shows in the file content.
+
+    In your response: Absolutely AVOID any elements including but not limited to:
+    - Markdown code block markers (``` or  ```)
+    - Extra comments or explanations
+    - Unnecessary empty lines or indentation
+    '''
+
+    qa = QA_NoContext_deepseek_R1()
+
+    answer = qa.ask(add_new_file_prompt)
+
+    # Perform dimension correction
+    file_content = answer
+    with open(os.path.join(config.path_cfg.database_dir, 'OF_case_dimensions.json'), 'r', encoding='utf-8') as f:
+        dimensions_dict = json.load(f)
+    if file_name in dimensions_dict.keys():
+        if "dimensions" in file_content:
+            dimension_pattern = r'dimensions.*?\n'
+            match = re.search(dimension_pattern, file_content)
+            if match:
+                if file_name+"_" in dimensions_dict.keys(): # The underlined parts cannot be compressed.
+                    if file_name in ["0/p", "0/p_rgh", "0/alphat"]: 
+                        if config.case_info.case_solver in config.compressible_solvers or "compressible" in file_content:
+                            file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name]};\n', file_content)
+                        elif config.case_info.case_solver in config.incompressible_solvers:
+                            file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name+"_"]};\n', file_content)
+                        else:
+                            pass
+                    else:
+                        pass # Skip decision, let LLM set according to initially generated content
+                else:
+                    file_content = re.sub(dimension_pattern, f'dimensions      {dimensions_dict[file_name]};\n', file_content)
+        else:
+            if file_name+"_" in dimensions_dict.keys(): 
+                if file_name in ["0/p", "0/p_rgh", "0/alphat"]: 
+                    if config.case_info.case_solver in config.compressible_solvers or "compressible" in file_content:
+                        file_content = f"\ndimensions      {dimensions_dict[file_name]};\n"
+                    elif config.case_info.case_solver in config.incompressible_solvers:
+                        file_content = f"\ndimensions      {dimensions_dict[file_name+'_']};\n"
+                else:
+                    pass    # File will error, let LLM solve it itself
+            else:
+                file_content += f"\ndimensions      {dimensions_dict[file_name]};\n"
+
+    try:
+        file_writer.write_field_to_file(file_content,file_path)
+        print(f"write the file {file_name}")
+    except Exception as e:
+        print(f"Errors occur during write_field_to_file: {e}")
+    else: # Successfully executed field file write operation
+        file_write_successful = True
+    return answer
 
 def find_reference_files(target_file, case_name = None):
     """Find target_file files from other cases for reference

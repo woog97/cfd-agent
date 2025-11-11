@@ -116,7 +116,12 @@ def case_run(case_path):
 
     running_log = f'{case_path}/case_run.log'
 
-    command = f'{solver} -case {case_path} > {running_log}'
+    if "system/setFieldsDict" in config.case_info.file_structure:
+        # bake the initial field
+        backup_cmd = f'cd {case_path} && rm -rf 0.bak && cp -r 0 0.bak'
+        command = f'{backup_cmd} && setFields -case {case_path} && {solver} -case {case_path} > {running_log}'
+    else:
+        command = f'{solver} -case {case_path} > {running_log}'
     # command = f'ls'
     output = subprocess.run(
         command,
@@ -125,10 +130,7 @@ def case_run(case_path):
         text=True,
         capture_output=True  # get stdout and stderr
         )
-    
-    run_case_error = output.stderr
-    run_case_output = output.stdout
-    
+
     if output.returncode != 0: # Check if command execution resulted in an error
         print("Program error! Error message:", output.stderr)
         return output.stderr

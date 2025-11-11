@@ -3,7 +3,7 @@ import json
 import torch
 import pdfplumber
 
-import config, file_writer, run_of_case, file_corrector,file_preparation
+import config, run_of_case, file_corrector,file_preparation
 
 import Reflextion
 
@@ -79,7 +79,7 @@ def main(case_name_idx):
             print("Regenerating initial files")
 
     # Simple check of file format and ensure correct dimensions
-    print("Performing simple checks...")
+    print("Performing simple format checks...")
     config.global_files = file_preparation.check_file_format(config.global_files)
 
     # write the case files
@@ -123,7 +123,7 @@ def main(case_name_idx):
                         if config.error_history[i] == last_error:
                             count += 1
                         else:
-                            break  # Stop when encountering different errors
+                            break
                     if count >= 4:  # Same error occurred 4 times (reflected twice but still failed), rewrite file
                         file_for_revision, early_revision_advice = file_corrector.analyze_running_error_with_all_case_file_content(running_error)
                         reference_files = file_corrector.find_reference_files_by_solver(file_for_revision)  # Find reference files based on file_for_revision
@@ -200,7 +200,8 @@ def main(case_name_idx):
                     else:
                         advices_for_revision = file_corrector.analyze_running_error_with_reference_files(running_error, file_for_revision,early_revision_advice,reference_files)
                         file_corrector.single_file_corrector2(file_for_revision, advices_for_revision, reference_files)
-                else:# File addition branch
+                else:
+                    # File addition branch
                     file_for_adding = answer_add_new_file_strip
                     file_corrector.add_new_file(file_for_adding)
 

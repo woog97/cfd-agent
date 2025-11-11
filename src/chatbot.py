@@ -90,8 +90,6 @@ GUIDE_CASE_CHOOSE_PROMPT = """Understand the user's answer and describe the case
 """
 
 
-# OpenFOAM case setup keywords, used to extract keywords from case descriptions to match the most relevant cases in the case library. OF-v2406
-
 class ChatBot:
     def __init__(self):
         self.client = OpenAI(
@@ -127,13 +125,7 @@ class ChatBot:
             # Record token usage
             usage = response.usage
             self.token_counter["total"] += usage.total_tokens
-            # qa_record = {
-            #     "prompt": messages,
-            #     "prompt_tokens": usage.prompt_tokens,
-            #     "completion_tokens": usage.completion_tokens,
-            #     "total_tokens": usage.total_tokens,
-            #     "timestamp": datetime.now().isoformat()
-            # }
+
             return response.choices[0].message.content
         except Exception as e:
             return f"Chat error: {str(e)}"
@@ -148,6 +140,7 @@ class ChatBot:
             return len(encoding.encode(text))
 
 def initialize_session_state():
+    """ Initialise session state for web interaction logic configuration"""
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "chatbot" not in st.session_state:
@@ -158,8 +151,6 @@ def initialize_session_state():
         st.session_state.file_processed = False
     if "ask_case_solver" not in st.session_state:
         st.session_state.ask_case_solver = False
-    # if "user_answered" not in st.session_state:
-    #     st.session_state.user_answered = False
     if "user_answer_finished" not in st.session_state:
         st.session_state.user_answer_finished = False
     if "uploaded_grid" not in st.session_state:
@@ -352,7 +343,7 @@ def main():
                         config.all_case_dict = json.loads(response)
                         break  # Parse successful, break loop
                     except json.JSONDecodeError:
-                        print(f"Failed to get config.all_case_dict")
+                        print(f"Failure to correctly parse the example configuration within the documentation")
                         if attempt < max_retries - 1:
                             continue  # Continue retry
                         else:
@@ -373,10 +364,11 @@ def main():
                 decorated_response = f'''You choose to simulate the cases with the following setups:\n{md_form}'''
                 st.write(decorated_response)
                 st.session_state.messages.append({"role": "assistant", "content": decorated_response, "timestamp": datetime.now().isoformat()})
-                # later, fnae
+
                 st.session_state.user_answer_finished = True
 
         else: 
+            # Check whether the user is requesting to modify an existing configuration
             if st.session_state.user_answer_finished:
                 modification_prompt = f'''Based on the user's new request: "{prompt}"
                 
@@ -471,16 +463,11 @@ def main():
             ]
             # Unified processing: whether input is string or list, convert to list
             if isinstance(other_physical_model, str):
-                # String → single element list
                 other_physical_model = [other_physical_model]
             elif not isinstance(other_physical_model, list):
-                # Neither string nor list → empty list
                 other_physical_model = []
 
-            # Filter elements that exist in other_model_list
             other_physical_model = [m for m in other_physical_model if m in other_model_list]
-
-            # If empty after filtering, set to None
             if not other_physical_model:
                 other_physical_model = None
 
@@ -503,7 +490,6 @@ def main2(txt_file=""):
             base_url=os.environ.get("DEEPSEEK_R1_BASE_URL")
         )
     
-    # chatbot = qa_modules.QA_Context_deepseek_R1(SYSTEM_PROMPT)
     def basic_chat(messages):
         response= client.chat.completions.create(
             model=os.environ.get("DEEPSEEK_R1_MODEL_NAME"),
@@ -511,6 +497,8 @@ def main2(txt_file=""):
             temperature=0.9
         )
         return response.choices[0].message.content
+
+    manual_verification = False  # Should manual verification or modification of the configuration for extracting LLM case studies be required?
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
@@ -529,7 +517,7 @@ def main2(txt_file=""):
 
     print("\n**Chatbot:**\n", ask_to_choose_case_and_solver)    
 
-    if 0:
+    if manual_verification:
         user_answer = input("Please choose the case you want to simulate and the OpenFOAM solver you want to use: ")
     else:
         # Here you can use a preset answer for testing
@@ -590,16 +578,11 @@ def main2(txt_file=""):
 
         # Unified processing: whether input is string or list, convert to list
         if isinstance(other_physical_model, str):
-            # String → single element list
             other_physical_model = [other_physical_model]
         elif not isinstance(other_physical_model, list):
-            # Neither string nor list → empty list
             other_physical_model = []
 
-        # Filter elements that exist in other_model_list
         other_physical_model = [m for m in other_physical_model if m in other_model_list]
-
-        # If empty after filtering, set to None
         if not other_physical_model:
             other_physical_model = None
 
@@ -616,20 +599,21 @@ def main2(txt_file=""):
 if __name__ == "__main__":
 
     # ======= **0. You need to make the settings according to the requirements here** =======
-    config.mode = 0    # 0 or 1, corresponding to using streamlit or python for startup
-    config.grid_type = "polyMesh"   # msh or polyMesh
     config.run_cfg.run_time = 1
+    config.mode = 0    # 0 or 1, corresponding to using streamlit or python for startup
+    # config.grid_type = "polyMesh"   # msh or polyMesh
+
 
     # ======= 1. Program startup settings =======
     if config.mode == 0:  # 0: With frontend, streamlit
-        # streamlit run src/chatbot.py --server.port [your port setting, such as 8502]
+        # streamlit run src/chatbot.py --server.port [your port setting, such as 8501]
 
         config.grid_type = "msh"
-        # print("Please use the following command to start the program:")
-        # print("  streamlit run src/chatbot.py --server.port [your port setting, such as 8502]")
-        # print("Please enter the PDF, mesh file (.msh format), and simulation requirements in the interactive interface...")
+        print("Please use the following command to start the program:")
+        print("  streamlit run src/chatbot.py --server.port [your port setting, such as 8501]")
+        print("Please enter the PDF, mesh file (.msh format), and simulation requirements in the interactive interface...")
     
-        main()  # streamlit run src/chatbot.py --server.port 8502
+        main()  # streamlit run src/chatbot.py --server.port 8501
 
     elif config.mode == 1:  # 1: No frontend, run directly
         # python chatbot.py --case_description_path <path> --grid_path <path> --run_time <int>
@@ -645,6 +629,13 @@ if __name__ == "__main__":
         config.path_cfg.case_description_path = args.case_description_path
         config.path_cfg.grid_path = args.grid_path
         config.run_cfg.run_time = args.run_time
+
+        if os.path.isfile(config.path_cfg.grid_path) and config.path_cfg.grid_path.endswith(".msh"):
+            config.grid_type = "msh"
+        elif os.path.isdir(config.path_cfg.grid_path):
+            config.grid_type = "polyMesh"
+        else:
+            sys.exit("Error: grid_path shall be a .msh file or a polyMesh directory")
 
         print("Your config:")
         print(f"  config.path_cfg.case_description_path={config.path_cfg.case_description_path}")

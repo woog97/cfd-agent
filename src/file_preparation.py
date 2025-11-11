@@ -273,41 +273,21 @@ Please strictly follow the requirements below for the output:
             print(f"Failed to modify controlDict: {e}")
             raise e
 
-def write_field_to_file(field_file_content, output_file_name):
-    # Escape processing (handle \n and special characters)
-    processed_content = field_file_content.encode('latin-1').decode('unicode_escape')
-
-    directory = os.path.dirname(output_file_name)
-
-    if directory and not os.path.exists(directory):
-        os.makedirs(directory)
-
-    # Write to file (recommended to use filename corresponding to object field)
-    with open(output_file_name, 'w', encoding='utf-8') as f:  # Filename should be based on object field, recommended to use "U"
-        f.write(processed_content)
-
 
 # Select file composition
-def case_required_files(solver=None, turbulence_model=None, other_physical_model=None, case_name=None):
+def case_required_files(solver=None, turbulence_model=None, other_physical_model=None):
     """Generate required file list based on solver, turbulence model and other information
     Args:
         solver: Case solver
         turbulence_model: Case turbulence model
-        case_name: Case name
     Returns:
         required_files (set): List of files to be generated
         file_turbulence_model(dict): Reference cases for generating file structure and their corresponding turbulence models
     """
-    # if solver == None:
-    #     solver=config.case_solver
     config.case_solver = solver
     config.case_turbulence_model = turbulence_model
-    # if turbulence_model == None:
-    #     turbulence_model=config.case_turbulence_model
     if other_physical_model == None:
         other_physical_model = config.case_info.other_physical_model
-    if case_name == None:
-        case_name = config.case_info.other_physical_model
 
     # Find reference files and select required files for the case based on simulation requirements
     file_alternative = {}
@@ -377,9 +357,13 @@ def case_required_files(solver=None, turbulence_model=None, other_physical_model
             turbulence_files_structure = json.load(f)
         # print(file_turbulence_model)
         for case_name, turbulence_model_name in file_turbulence_model.items():
-            if turbulence_model_name != None:
-                excessive_file = set(turbulence_files_structure[turbulence_model_name]) - set(turbulence_files_structure[turbulence_model])
-                missing_file = set(turbulence_files_structure[turbulence_model]) - set(turbulence_files_structure[turbulence_model_name])
+            if turbulence_model_name != None and turbulence_model_name != turbulence_model:
+                if turbulence_model != None:
+                    excessive_file = set(turbulence_files_structure[turbulence_model_name]) - set(turbulence_files_structure[turbulence_model])
+                    missing_file = set(turbulence_files_structure[turbulence_model]) - set(turbulence_files_structure[turbulence_model_name])
+                else:
+                    excessive_file = set(turbulence_files_structure[turbulence_model_name])
+                    missing_file = set()
                 file_alternative[case_name] = (file_alternative[case_name] - excessive_file).union(missing_file)
 
     for case_name, file_list in file_alternative.items():
@@ -393,14 +377,13 @@ def case_required_files(solver=None, turbulence_model=None, other_physical_model
 
     gian_file_structure = f"""You are an OpenFOAM expert. The simulation requirement is: {config.simulate_requirement}
 
-    Below are the optional reference cases and their file lists:
-    {file_alternative}
+Below are the optional reference cases and their file lists:
+{file_alternative}
 
-    1. Based on the simulation requirement, identify the file list that best matches the requirement and return the corresponding reference case name.
-    2. If no suitable file list exists, provide the closest reference case name.
-    3. If all file lists are completely unsuitable, return "none".
-    4. Return only the case name, with no explanations, code blocks, or additional content.
-    """
+1. Based on the simulation requirement, identify the file list that best matches the requirement and return the corresponding reference case name.
+2. If no suitable file list exists, provide the closest reference case name.
+3. If all file lists are completely unsuitable, return "none".
+4. Return only the case name, with no explanations, code blocks, or additional content."""
 
     qa = QA_NoContext_deepseek_V3()
 
@@ -457,7 +440,6 @@ def case_required_files(solver=None, turbulence_model=None, other_physical_model
     print(file_name) # Reference name
     print(file_structure)   
     print(file_turbulence_model)    # May still differ from the required turbulence model
-    # Can consider special models further
     return file_structure, file_name, file_turbulence_model
 
 # Generate initial files
@@ -623,9 +605,6 @@ Boundary names and their geometric types from the mesh:
     print("Initial condition and boundary condition settings:", ic_bc_info)
     config.grid_info.field_ic_bc_from_input = ic_bc_info
 
-    # other_setting_info = ""
-    # print("Discretization schemes, solver settings, material properties, etc.:")
-
     # Preparation before generating OpenFOAM case files
     class FileContent(BaseModel):
         files_content: Dict[str, str] = Field(description="A mapping from file name to its file content")
@@ -691,7 +670,6 @@ Boundary names and their geometric types from the mesh:
 
     setup_cfl_control(case_path=output_case_path, max_co=0.6, controlDict_ref=controlDict_ref)
 
-    qa = QA_NoContext_deepseek_R1()
     generate_files_prompt_0 = f"""I would like to simulate the following case with OpenFOAM-v2406:
 
 <case_requirements>
@@ -763,10 +741,6 @@ Please follow the requirements below for your output:
 </output_requirements>"""
 
     case_file.update(parser.parse(extractor.query_case_setup(generate_files_prompt_1, context = True)).files_content)
-    # case_file.update(parser.parse(qa.ask(generate_files_prompt_1)).files_content)
-    # print(case_file)
-
-    # print(json.dumps(case_file, indent=4, ensure_ascii=False))
     return case_file
 
 def check_file_format(files_content=None):
@@ -836,7 +810,7 @@ def check_file_format(files_content=None):
                          elif config.case_info.case_solver in config.incompressible_solvers:
                              files_content[file_name] = f"\ndimensions      {dimensions_dict[file_name+'_']};\n"
                      else:
-                         continue    # File will error, let LLM solve it itself
+                         continue
                 else:
                     files_content[file_name] += f"\ndimensions      {dimensions_dict[file_name]};\n"
     
