@@ -87,7 +87,7 @@ def main(case_name_idx):
         output_file = f"{config.path_cfg.output_case_path}/{key}"
 
         try:
-            file_preparation.write_field_to_file(value,output_file)
+            file_corrector.write_field_to_file(value,output_file)
             print(f"write the file {key}")
 
         except Exception as e:

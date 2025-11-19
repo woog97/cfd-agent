@@ -7,7 +7,6 @@ import re
 import random
 from pathlib import Path
 
-import file_writer
 from qa_modules import QA_NoContext_deepseek_V3,QA_NoContext_deepseek_R1
 
 # import prompt
@@ -16,6 +15,30 @@ from typing import List, Dict
 from langchain.output_parsers import PydanticOutputParser
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def extract_pure_response(text):
+    # Use regex to match all content (including newlines)
+    pattern = r"Here is my response:(.*?)(?=$|\Z)"
+    match = re.search(pattern, text, re.DOTALL)
+    
+    if match:
+        # Remove leading and trailing whitespace
+        return match.group(1).strip()
+    return ""
+
+def write_field_to_file(field_file_content, output_file_name):
+    # Escape processing (handle \n and special symbols)
+    processed_content = field_file_content.encode('latin-1').decode('unicode_escape')
+
+    directory = os.path.dirname(output_file_name)
+
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Write to file (recommended to use the filename corresponding to the object field)
+    with open(output_file_name, 'w', encoding='utf-8') as f:  # Filename suggested to use "U" based on object field
+        f.write(processed_content)
 
 
 def robust_llm_parse(qa, prompt, parser, max_retries=3):
@@ -147,7 +170,7 @@ no'''
 
     answer = qa.ask(analyze_error_to_add_new_file)
 
-    pure_response = file_writer.extract_pure_response(answer)
+    pure_response = extract_pure_response(answer)
 
     return pure_response
 
@@ -170,7 +193,7 @@ def identify_file_name_from_error(running_error):
 
     answer = answer.strip()
 
-    # file_for_revision = file_writer.extract_pure_response(answer)
+    # file_for_revision = extract_pure_response(answer)
 
     return answer
 
@@ -379,10 +402,10 @@ In your final response after "Here is my response:", absolutely AVOID any elemen
 
     answer = qa.ask(correct_file_prompt)
 
-    answer = file_writer.extract_pure_response(answer)
+    answer = extract_pure_response(answer)
 
     try:
-        file_writer.write_field_to_file(answer,file_path)
+        write_field_to_file(answer,file_path)
         print(f"write the file {file_name}")
 
     except Exception as e:
@@ -414,10 +437,10 @@ def rewrite_file(file_name, reference_files):
 
     answer = qa.ask(correct_file_prompt)
 
-    answer = file_writer.extract_pure_response(answer)
+    answer = extract_pure_response(answer)
 
     try:
-        file_writer.write_field_to_file(answer,file_path)
+        write_field_to_file(answer,file_path)
         print(f"write the file {file_name}")
 
     except Exception as e:
@@ -505,7 +528,7 @@ def add_new_file(file_name):
                 file_content += f"\ndimensions      {dimensions_dict[file_name]};\n"
 
     try:
-        file_writer.write_field_to_file(file_content,file_path)
+        write_field_to_file(file_content,file_path)
         print(f"write the file {file_name}")
     except Exception as e:
         print(f"Errors occur during write_field_to_file: {e}")
