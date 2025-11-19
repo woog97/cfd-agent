@@ -214,7 +214,30 @@ streamlit run src/chatbot.py --server.port "[[[your_port_setting, e.g., 8501]]]"
 ```
 After running, access http://localhost:[port] in your browser. In the interface, users can upload paper PDFs, specify the CFD case, and upload mesh files to start the simulation as prompted.
 
-Web interface upon successful launch:
+**Specific operational steps:**
+1. Input Case Description Document:
+    - In the `Upload the Documents` area, upload the description file containing the detailed CFD simulation information (e.g., academic papers, natural language instructions, etc., typically in PDF format).
+
+2. Intelligent Identification and Configuration Review:
+
+    - ChatCFD will automatically parse the description file to identify the executable CFD simulation cases and their corresponding parameter settings.
+
+    - After the user selects the specific case they wish to execute, the system will output a summary of the basic configuration.
+
+    - The user can then make interactive modifications and confirmations to fundamental settings such as the solver, turbulence model, and boundary conditions via the chat interface.
+
+3. Provide Mesh and Start Simulation:
+
+    - Once the case configuration is finalized, upload the corresponding computational mesh file (e.g., .msh format) in the `Upload the mesh file` area.
+
+    - The system will automatically complete the full configuration and file generation for the OpenFOAM case, initiating the end-to-end automated CFD simulation.
+
+4. Result Storage:
+
+    - Upon simulation completion, the final CFD results and logs will be automatically saved to the `run_chatcfd` folder in the project root directory
+
+
+Web Interface Upon Launch:
 
 ![Web](figures/web.png)
 
@@ -224,6 +247,16 @@ Specify input files directly via command line arguments to start the simulation.
 ```Bash
 python src/chatbot.py --case_description_path "<path_to_pdf_or_txt>" --grid_path "<path_to_mesh_file>" --run_time "<int_number_of_iterations>"
 ```
+**Specific operational steps:**
+1. Prepare Input: 
+    - Ensure that the command-line arguments (`--case_description_path`, `--grid_path`, and `--run_time`) are correctly specified.
+
+2. Execute Calculation: 
+    - Run the command directly. ChatCFD will automatically complete the entire process of case identification, configuration, execution, and error correction.
+
+3. Retrieve Results: 
+    - The final CFD simulation results and logs will be saved in the `run_chatcfd` folder located in the project root directory.
+
 
 ## 📁 File Structure Description
 
