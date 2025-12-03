@@ -617,6 +617,7 @@ if __name__ == "__main__":
 
     elif config.mode == 1:  # 1: No frontend, run directly
         # python chatbot.py --case_description_path <path> --grid_path <path> --run_time <int>
+        # such as: python src/chatbot.py --case_description_path ../dataset_example/Cavity.txt --grid_path ../dataset_example/cavity/polyMesh --run_time 2
 
         parser = argparse.ArgumentParser(description="ChatCFD: AI-Driven CFD Simulation Setup and Execution")
 
@@ -654,6 +655,7 @@ if __name__ == "__main__":
                 f.write("="*50 + "\n")
                 f.write(f"[{timestamp}] {config.path_cfg.case_description_path}: success.\n")
             print(f"Success cases: {config.path_cfg.case_description_path}")
+            print(f"Output path: {config.path_cfg.output_path}")
         
         except Exception as e:
             import traceback

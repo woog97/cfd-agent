@@ -162,6 +162,7 @@ def extract_boundary_names(grid_file_path, grid_type = None):
 
 def setup_cfl_control(case_path, max_co=0.6, controlDict_ref=None):
     """Set CFL control parameters"""
+    solver = config.case_info.case_solver
     demo_compressible_solver = ["rhoCentralFoam", "sonicFoam"]
     if controlDict_ref is None or solver in demo_compressible_solver:
         try:
@@ -530,7 +531,7 @@ runTimeModifiable true;"""
 
     # Process PDF or txt, and use RAG to answer questions
     extractor = pdf_chunk_ask_question.CFDCaseExtractor()
-    extractor.process_pdf(config.pdf_path)
+    extractor.process_pdf(config.path_cfg.case_description_path)
 
     # Get physical fields
     initial_files = []  # Field files

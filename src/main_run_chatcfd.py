@@ -48,10 +48,10 @@ def load_OF_data_json():
 def main(case_name_idx):
 
     # Load PDF or txt file
-    if config.pdf_path.endswith('.pdf'):
-        config.paper_content, config.paper_table = process_pdf_pdfplumber(config.pdf_path)
+    if config.path_cfg.case_description_path.endswith('.pdf'):
+        config.paper_content, config.paper_table = process_pdf_pdfplumber(config.path_cfg.case_description_path)
     else:
-        with open(config.pdf_path, 'r', encoding='utf-8') as file:
+        with open(config.path_cfg.case_description_path, 'r', encoding='utf-8') as file:
             config.paper_content = file.read()
             config.paper_table = []
 
@@ -75,8 +75,9 @@ def main(case_name_idx):
         try:
             config.global_files = file_preparation.generate_initial_files()
             write_initial_files = True
-        except:
-            print("Regenerating initial files")
+        except Exception as e:
+            print(f"Errors occur during generate_initial_files: {e}")
+            print(f"Regenerating initial files...")
 
     # Simple check of file format and ensure correct dimensions
     print("Performing simple format checks...")
@@ -135,7 +136,7 @@ def main(case_name_idx):
                     elif count > 1:
                         # Same error occurred consecutively, start reflection
                         reflection_result = Reflextion.reflextion(running_error, config.correct_trajectory[-1*count:])
-                        relevant_reflections = Reflextion.constructe_reflection_context(running_error, Reflextion.reflection_history)
+                        # relevant_reflections = Reflextion.constructe_reflection_context(running_error, Reflextion.reflection_history)
                         need_reflextion = True
 
                 if need_reflextion == False:
