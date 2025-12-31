@@ -21,3 +21,6 @@ embeddings = model.encode(sentences)
 # Quick similarity check
 print(f"Similarity 0-1: {embeddings[0] @ embeddings[1].T:.3f}")
 print(f"Similarity 0-2: {embeddings[0] @ embeddings[2].T:.3f}")
+
+from huggingface_hub import constants
+print(constants.HF_HUB_CACHE)

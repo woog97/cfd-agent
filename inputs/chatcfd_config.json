@@ -1,16 +1,14 @@
 {
-    "DEEPSEEK_V3_KEY" : "86db3c54-f529-[LLM-KEY]",
-    "DEEPSEEK_V3_BASE_URL" : "https://ark.[LLM-EndPoint]",
-    "DEEPSEEK_V3_MODEL_NAME" : "[LLM_model_name]",
-    "V3_temperature":0.7,
-    "DEEPSEEK_R1_KEY" : "86db3c54-f529-[LLM-KEY]",
-    "DEEPSEEK_R1_BASE_URL" : "https://ark.cn-[LLM-EndPoint]",
-    "DEEPSEEK_R1_MODEL_NAME" : "[LLM_model_name]",
-    "R1_temperature":0.9,
-    "run_time":3,
-    "OpenFOAM_path":"/usr/lib/openfoam/openfoam2406[path_to_OpenFOAM]",
-    "OpenFOAM_tutorial_path":"[/home/fane/OpenFOAM/fane-v2406/tutorials[path_to_OpenFOAM_tutorial]",
-    "max_running_test_round":30,
-    "pdf_chunk_d" : 1.5,
-    "sentence_transformer_path": "[/path/to/sentence_transformer]"
+    "_comment": "Set OPENAI_API_KEY environment variable instead of storing here",
+    "OPENAI_BASE_URL": "https://openrouter.ai/api/v1",
+    "INSTRUCT_MODEL_NAME": "deepseek/deepseek-chat",
+    "instruct_temperature": 0.7,
+    "REASONING_MODEL_NAME": "deepseek/deepseek-r1",
+    "reasoning_temperature": 0.9,
+    "run_time": 3,
+    "OpenFOAM_path": "/opt/openfoam11",
+    "OpenFOAM_tutorials_path": "/opt/openfoam11/tutorials",
+    "max_running_test_round": 30,
+    "pdf_chunk_d": 1.5,
+    "sentence_transformer_path": "/Users/alicerigg/.cache/huggingface/hub/models--sentence-transformers--all-mpnet-base-v2"
 }

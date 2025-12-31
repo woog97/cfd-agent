@@ -2,5 +2,6 @@
 __pycache__/
 temp/
 run_chatcfd/
+runs/
 src/*_bak.py
 removed/
