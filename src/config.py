@@ -205,7 +205,7 @@ class AppConfig:
 
     # PDF processing
     pdf_chunk_distance: float = 1.5
-    sentence_transformer_path: str = "/home/all-mpnet-base-v2"
+    sentence_transformer_path: str = "sentence-transformers/all-mpnet-base-v2"
 
     # Execution limits
     max_correction_attempts: int = 30
@@ -273,7 +273,7 @@ def load_config(config_path: str | None = None) -> AppConfig:
         openfoam=OpenFOAMConstants(),
         docker=docker_config,
         pdf_chunk_distance=config_data.get("pdf_chunk_d", 1.5),
-        sentence_transformer_path=config_data.get("sentence_transformer_path", "/home/all-mpnet-base-v2"),
+        sentence_transformer_path=config_data.get("sentence_transformer_path", "sentence-transformers/all-mpnet-base-v2"),
         max_correction_attempts=config_data.get("max_running_test_round", 30),
     )
 

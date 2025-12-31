@@ -10,5 +10,5 @@
     "OpenFOAM_tutorials_path": "/opt/openfoam11/tutorials",
     "max_running_test_round": 30,
     "pdf_chunk_d": 1.5,
-    "sentence_transformer_path": "/Users/alicerigg/.cache/huggingface/hub/models--sentence-transformers--all-mpnet-base-v2"
+    "sentence_transformer_path": "sentence-transformers/all-mpnet-base-v2"
 }
